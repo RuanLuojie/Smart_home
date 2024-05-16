@@ -27,13 +27,7 @@ from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 from config import *
 
-app = Flask(__name__)
-
-line_bot_api = LineBotApi(YOUR_CHANNEL_ACCESS_TOKEN)
-handler = WebhookHandler(YOUR_CHANNEL_SECRET)
-
-# 設備狀態字典
-device_status = {'light': 'off'}
+...
 ```
 
 #### LINE Bot 功能
@@ -48,25 +42,7 @@ def callback():
     signature = request.headers['X-Line-Signature']
     body = request.get_data(as_text=True)
     try:
-        handler.handle(body, signature)
-    except InvalidSignatureError:
-        abort(400)
-    return 'OK'
-
-@handler.add(MessageEvent, message=TextMessage)
-def handle_message(event):
-    text = event.message.text.lower()
-    if text == "turn_on":
-        device_status['light'] = 'on'
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text="Light has been turned on.")
-        )
-    elif text == "turn_off":
-        device_status['light'] = 'off'
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text="Light has been turned off.")
+...
         )
 ```
 
@@ -92,66 +68,6 @@ def get_command():
 if __name__ == "__main__":
     app.run()
 ```
-#### 原代碼
-```python
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-from flask import Flask, request, jsonify, abort
-from linebot import (
-    LineBotApi, WebhookHandler
-)
-from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage
-from config import *
-
-app = Flask(__name__)
-
-line_bot_api = LineBotApi(YOUR_CHANNEL_ACCESS_TOKEN)  # 替换为您的 Channel access token
-handler = WebhookHandler(YOUR_CHANNEL_SECRET)  # 替换为您的 Channel secret
-
-# 用于存储设备状态的字典
-device_status = {'light': 'off'}  # 默认灯是关的
-
-@app.route("/callback", methods=['POST'])
-def callback():
-    signature = request.headers['X-Line-Signature']
-    body = request.get_data(as_text=True)
-    try:
-        handler.handle(body, signature)
-    except InvalidSignatureError:
-        abort(400)
-    return 'OK'
-
-@handler.add(MessageEvent, message=TextMessage)
-def handle_message(event):
-    text = event.message.text.lower()
-    if text == "turn_on":
-        device_status['light'] = 'on'
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text="Light has been turned on.")
-        )
-    elif text == "turn_off":
-        device_status['light'] = 'off'
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text="Light has been turned off.")
-        )
-    else:
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text="Unknown command.")
-        )
-
-@app.route("/esp32/command", methods=['GET'])
-def get_command():
-    return jsonify(device_status)
-
-if __name__ == "__main__":
-    app.run()
-
-```
 #### ESP32 的接收逻辑
 ESP32 定期向 Glitch 伺服器發起 HTTP GET 請求，查詢裝置的目前狀態。 然後，根據返回的數據控制相應的硬件，如燈光。
 
@@ -174,23 +90,7 @@ void setup() {
     Serial.println("WiFi connected");
 }
 
-void loop() {
-    if (WiFi.status() == WL_CONNECTED) {
-        HTTPClient http;
-        http.begin("http://translucent-charm-agustinia.glitch.me/esp32/command");  // 確保 URL 正確
-        int httpCode = http.GET();
-
-        if (httpCode == 200) {
-            String payload = http.getString();
-            Serial.println("Received command: " + payload);
-            // 解析 payload 中的指令並執行對應操作
-        } else {
-            Serial.println("Error on HTTP request");
-        }
-        http.end();
-    }
-    delay(1000); // 10 秒請求一次，根據需要調整頻率
-}
+...
 
 ```
 
