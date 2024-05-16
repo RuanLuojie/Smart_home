@@ -1,22 +1,22 @@
-# Smart Home Appliances: System Functions and Code Implementation
+# 智慧家電：系統功能與代碼實現
 
-In this chapter, we will delve into each component of the system, including the LINE Bot, Glitch server, and ESP32 device. We'll demonstrate how to integrate these components to achieve remote control of lighting functions through a unified Python Flask application example.
+在本章中，我們將深入探討系統的每個組成部分，包括 LINE Bot、Glitch 伺服器和 ESP32 設備。透過一個統一的 Python Flask 應用示例來展示如何集成這些組件，以實現遠程控制燈光的功能。
 
-### System Overview
+### 系統概述
 
-This system consists of three core parts:
+本系統包含三個核心部分：
 
-- **LINE Bot**: Receives user text commands.
-- **Glitch Server**: Acts as a central server, processing commands and storing device status.
-- **ESP32**: Executes actual device control operations, such as toggling lights.
+- **LINE Bot**：接收用戶的文字指令。
+- **Glitch 伺服器**：作為中央伺服器，處理指令並存儲設備狀態。
+- **ESP32**：執行實際的設備控制操作，如開關燈。
 
-All of these functionalities are implemented through a single Flask application, which is hosted on Glitch.
+所有這些功能都通過一個單一的 Flask 應用實現，該應用在 Glitch 上托管。
 
-#### Flask Application Structure
+#### Flask 應用結構
 
-The Flask application below includes routes for handling LINE messages and managing device status via an API. These code snippets represent different parts of the same application and should run together on the same server instance.
+下面的 Flask 應用包括處理 LINE 消息的路由和管理設備狀態的 API。這些代碼片段都是同一個應用的不同部分，應一起運行在同一個伺服器實例上。
 
-##### Global Setup and Route Definition for Flask Application
+##### Flask 應用的全局設置和路由定義
 
 ```python
 from flask import Flask, request, jsonify, abort
@@ -32,15 +32,15 @@ app = Flask(__name__)
 line_bot_api = LineBotApi(YOUR_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(YOUR_CHANNEL_SECRET)
 
-# Device status dictionary
+# 設備狀態字典
 device_status = {'light': 'off'}
 ```
 
-#### LINE Bot Functionality
+#### LINE Bot 功能
 
-The LINE Bot receives user commands and updates device status based on these commands.
+LINE Bot 接收用戶的指令，並根據這些指令更新設備狀態。
 
-##### Code Snippet: Handling LINE Messages
+##### 代碼片段：處理 LINE 消息
 
 ```python
 @app.route("/callback", methods=['POST'])
@@ -70,11 +70,11 @@ def handle_message(event):
         )
 ```
 
-#### Device Status Management API
+#### 設備狀態管理 API
 
-This API route provides the latest device status information for ESP32.
+這個 API 路由為 ESP32 提供最新的設備狀態信息。
 
-##### Code Snippet: ESP32 Device Status API
+##### 代碼片段：ESP32 設備狀態 API
 
 ```python
 @app.route("/esp32/command", methods=['GET'])
@@ -82,19 +82,17 @@ def get_command():
     return jsonify(device_status)
 ```
 
-#### Starting the Flask Application
+#### 啟動 Flask 應用
 
-Demonstrates how to start the entire Flask application.
+展示如何啟動整個 Flask 應用。
 
-##### Code Snippet: Starting the Application
+##### 代碼片段：啟動應用
 
 ```python
 if __name__ == "__main__":
     app.run()
 ```
-
-#### Original Code
-
+#### 原代碼
 ```python
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
@@ -109,11 +107,11 @@ from config import *
 
 app = Flask(__name__)
 
-line_bot_api = LineBotApi(YOUR_CHANNEL_ACCESS_TOKEN)  # Replace with your Channel access token
-handler = WebhookHandler(YOUR_CHANNEL_SECRET)  # Replace with your Channel secret
+line_bot_api = LineBotApi(YOUR_CHANNEL_ACCESS_TOKEN)  # 替换为您的 Channel access token
+handler = WebhookHandler(YOUR_CHANNEL_SECRET)  # 替换为您的 Channel secret
 
-# Dictionary for storing device status
-device_status = {'light': 'off'}  # Default: light is off
+# 用于存储设备状态的字典
+device_status = {'light': 'off'}  # 默认灯是关的
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -154,17 +152,16 @@ if __name__ == "__main__":
     app.run()
 
 ```
+#### ESP32 的接收逻辑
+ESP32 定期向 Glitch 伺服器發起 HTTP GET 請求，查詢裝置的目前狀態。 然後，根據返回的數據控制相應的硬件，如燈光。
 
-#### ESP32 Receiving Logic
-The ESP32 periodically makes HTTP GET requests to the Glitch server to query the current status of the device. Then, based on the returned data, it controls the corresponding hardware, such as lights.
-
-Code Snippet: HTTP GET Request in ESP32
+程式碼片段：ESP32 的 HTTP GET 請求
 ```python
 #include <WiFi.h>
 #include <HTTPClient.h>
 
-const char* ssid = "your_ssid";
-const char* password = "your_password";
+const char* ssid = "nga";
+const char* password = "0958188700";
 
 void setup() {
     Serial.begin(115200);
@@ -180,46 +177,45 @@ void setup() {
 void loop() {
     if (WiFi.status() == WL_CONNECTED) {
         HTTPClient http;
-        http.begin("http://your-glitch-server-url.glitch.me/esp32/command");  // Make sure URL is correct
+        http.begin("http://translucent-charm-agustinia.glitch.me/esp32/command");  // 確保 URL 正確
         int httpCode = http.GET();
 
         if (httpCode == 200) {
             String payload = http.getString();
             Serial.println("Received command: " + payload);
-            // Parse instructions from payload and execute corresponding actions
+            // 解析 payload 中的指令並執行對應操作
         } else {
             Serial.println("Error on HTTP request");
         }
         http.end();
     }
-    delay(10000); // Request every 10 seconds, adjust frequency as needed
+    delay(1000); // 10 秒請求一次，根據需要調整頻率
 }
+
 ```
 
-### System Operation Principle
+### 系統工作原理
 
-This system comprises three main components: LINE Bot, Glitch server, and ESP32 device, each serving specific functions and collectively achieving remote control capability for the entire system. Here's how each component works and how they interact:
+本系統由三個主要組件構成：LINE Bot、Glitch 伺服器和 ESP32 設備，每個組件都承擔著特定的功能，共同實現整個系統的遠程控制能力。以下是各個組件的工作原理和它們之間如何交互：
 
 #### 1. LINE Bot
-The LINE Bot is the frontend interface for user interaction with the system. Users control devices by sending messages such as "turn_on" or "turn_off." These messages are sent to the Glitch server via the LINE Messaging API.
+LINE Bot 是用戶與系統交互的前端界面。用戶通過發送消息如 "turn_on" 或 "turn_off" 來控制設備。這些消息通過 LINE Messaging API 發送到 Glitch 伺服器。
 
-- **Receiving Messages**: When a user sends a message on the LINE app, the LINE platform pushes these messages to the `/callback` route on the Glitch server via Webhook.
-- **Handling Messages**: The Glitch server parses these messages and updates the internal state based on the message content, which is stored in the `device_status` dictionary.
+- **接收消息**：當用戶在 LINE 應用上發送消息時，LINE 平台將這些消息以 Webhook 的形式推送到 Glitch 伺服器上的 `/callback` 路由。
+- **處理消息**：Glitch 伺服器解析這些消息，並根據消息內容更新全局設備狀態字典 `device_status`。此字典記錄了設備的當前狀態（例如燈的開關狀態）。
 
-#### 2. Glitch Server
-The Glitch server acts as the central server, responsible for receiving and processing commands from the LINE Bot, and also providing an API for ESP32 to query the current device status.
+#### 2. Glitch 伺服器
+Glitch 伺服器扮演中心伺服器的角色，負責接收和處理來自 LINE Bot 的指令，同時也為 ESP32 提供一個查詢當前設備狀態的 API。
 
-- **State Management**: The server updates the internal state based on commands received from the LINE Bot, which are stored in the `device_status` dictionary.
-- **Providing Status Information**: The `/esp32/command` route allows ESP32 to periodically query the latest device status, ensuring synchronization between device behavior and user commands.
+- **狀態管理**：伺服器根據從 LINE Bot 接收到的指令更新內部狀態，這些狀態存儲在 `device_status` 字典中。
+- **提供狀態信息**：`/esp32/command` 路由允許 ESP32 定期查詢設備的最新狀態，確保設備行為與用戶指令同步。
 
-#### 3
+#### 3. ESP32 設備
+ESP32 是實際執行物理操作的組件。它定期向 Glitch 伺服器請求最新的設備狀態，並據此控制連接的硬體（如燈光）。
 
-. ESP32 Device
-The ESP32 is the component responsible for executing physical operations. It periodically requests the latest device status from the Glitch server and controls the connected hardware (such as lights) accordingly.
+- **定期查詢**：ESP32 通過 HTTP GET 請求訪問 Glitch 伺服器的 `/esp32/command` 路由，獲取最新的設備狀態信息。
+- **執行操作**：根據獲取的狀態信息，ESP32 會控制其 GPIO 端口連接的電器，如開關燈。
 
-- **Periodic Query**: ESP32 accesses the `/esp32/command` route on the Glitch server via HTTP GET requests to retrieve the latest device status information.
-- **Executing Operations**: Based on the retrieved status information, ESP32 controls the appliances connected to its GPIO ports, such as turning lights on or off.
+#### 整合原理
 
-#### Integration Principle
-
-This system communicates between components via network connections. Users send control commands through the LINE Bot, which are processed by the Glitch server and then executed by ESP32 in real-time. This design allows for flexible expansion to additional devices and functionalities while remaining simple and manageable.
+這個系統通過網路連接實現各組件之間的通信。用戶通過 LINE Bot 發送控制指令，Glitch 伺服器處理這些指令並更新設備狀態，ESP32 則實時檢查這些狀態並執行相應的物理操作。這種設計使得系統可以靈活地擴展到更多設備和功能，同時保持簡單和易於管理。
